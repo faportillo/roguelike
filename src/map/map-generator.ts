@@ -1,4 +1,11 @@
-import { MAP_WALL, MAP_ENTRANCE, MAP_EXIT } from "./constants/map-constants";
+import {
+  MAP_WALL,
+  MAP_ENTRANCE,
+  MAP_EXIT,
+  MAP_FLOOR,
+} from "./constants/map-constants";
+import { Point } from "./point";
+import { Pathfinding } from "./pathfinding";
 
 export class MapGenerator {
   private width: number;
@@ -13,13 +20,14 @@ export class MapGenerator {
 
   public generateMap(): string[][] {
     this.map = new Array(this.height)
-      .fill(0)
-      .map(() => new Array(this.width).fill(" "));
+      .fill(null)
+      .map(() => new Array(this.width).fill(MAP_FLOOR));
 
-    this.addEntrance();
-    this.addExit();
-
+    const entrancePoint = this.addEntrance();
+    const exitPoint = this.addExit();
     this.addWalls();
+
+    this.assertShortestPathToExit(entrancePoint, exitPoint);
 
     return this.map;
   }
@@ -67,15 +75,25 @@ export class MapGenerator {
     }
   }
 
-  private addEntrance() {
+  private addEntrance(): Point {
     const entranceY = Math.floor(Math.random() * (this.height - 4)) + 2; // Avoid borders
     const entranceX = Math.floor(Math.random() * (this.width - 4)) + 2; // Avoid borders
     this.map[entranceY][entranceX] = MAP_ENTRANCE;
+    return { x: entranceX, y: entranceY };
   }
 
-  private addExit() {
+  private addExit(): Point {
     const exitY = Math.floor(Math.random() * (this.height - 4)) + 2; // Avoid borders
     const exitX = Math.floor(Math.random() * (this.width - 4)) + 2; // Avoid borders
     this.map[exitY][exitX] = MAP_EXIT;
+    return { x: exitX, y: exitY };
+  }
+
+  private assertShortestPathToExit(entrance: Point, exit: Point) {
+    const path = new Pathfinding(this.map, entrance, exit).search();
+
+    path.forEach((point) => {
+      this.map[point.x][point.y] = MAP_FLOOR;
+    });
   }
 }
