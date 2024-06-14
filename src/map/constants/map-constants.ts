@@ -6,3 +6,5 @@ export const MAP_ENTRANCE_COLOR = "green";
 export const MAP_EXIT_COLOR = "red";
 export const MAP_WALL_COLOR = "gray";
 export const MAP_FLOOR_COLOR = "black";
+
+export const DISTANCE_ENTRANCE_EXIT = 5;

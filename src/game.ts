@@ -1,5 +1,5 @@
 import { Player } from "./entities/player";
-import { MapGenerator } from "./map/map-generator";
+import { MapGenerator, MapType } from "./map/map-generator";
 import { MapRenderer } from "./map/map-renderer";
 
 export class Game {
@@ -11,6 +11,7 @@ export class Game {
   private map: string[][];
   private player: Player;
   private mapRenderer: MapRenderer;
+  private mapGenerator: MapGenerator;
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -23,14 +24,23 @@ export class Game {
     this.mapWidth = mapWidth;
     this.mapHeight = mapHeight;
     this.tileSize = tileSize;
-    this.player = new Player(5, 5);
+
+    this.mapGenerator = new MapGenerator(
+      this.mapWidth,
+      this.mapHeight,
+      MapType.DUNGEON
+    );
+
+    this.player = new Player({ position: this.mapGenerator.entrancePoint });
+
     this.map = [];
     this.mapRenderer = new MapRenderer(canvas, [], tileSize); // Initialize with empty map
   }
 
   public start() {
-    const generator = new MapGenerator(this.mapWidth, this.mapHeight);
-    this.map = generator.generateMap();
+    this.map = this.mapGenerator.generateMap();
+    this.player.setStartingPoint(this.mapGenerator.entrancePoint);
+
     this.mapRenderer = new MapRenderer(this.canvas, this.map, this.tileSize); // Update map renderer with generated map
 
     window.addEventListener("keydown", (e) => this.handleInput(e));
@@ -50,33 +60,30 @@ export class Game {
   private render() {
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.mapRenderer.renderMap(); // Render the map
-    this.drawEntity(this.player); // Draw the player
-  }
-
-  private drawEntity(entity: { x: number; y: number; char: string }) {
-    this.context.fillStyle = "white";
-    this.context.font = "20px monospace";
-    this.context.fillText(
-      entity.char,
-      entity.x * this.tileSize,
-      entity.y * this.tileSize + 20
-    );
+    this.player.render(this.context); // Draw the player
   }
 
   private handleInput(event: KeyboardEvent) {
+    let newX = this.player.position.x;
+    let newY = this.player.position.y;
+
     switch (event.key) {
       case "w":
-        this.player.move(0, -1, this);
+        newY -= 1;
         break;
       case "a":
-        this.player.move(-1, 0, this);
+        newX -= 1;
         break;
       case "s":
-        this.player.move(0, 1, this);
+        newY += 1;
         break;
       case "d":
-        this.player.move(1, 0, this);
+        newX += 1;
         break;
+    }
+
+    if (this.isWithinBounds(newX, newY) && this.map[newY][newX] !== "#") {
+      this.player.move(newX, newY);
     }
   }
 

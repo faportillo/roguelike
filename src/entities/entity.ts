@@ -1,26 +1,35 @@
-export class Entity {
-  public x: number;
-  public y: number;
-  public char: string;
+import { Point } from "../map/point";
+import { ENTITY_TILE_SIZE } from "./constants/entity-constants";
+export interface EntityParams {
+  position: Point;
+  character?: string;
+  fillStyle?: "red";
+}
 
-  constructor(x: number, y: number, char: string) {
-    this.x = x;
-    this.y = y;
+export class Entity {
+  public position: Point;
+  public char: string;
+  public fillStyle: string;
+
+  constructor(position: Point, char: string, fillStyle: string) {
+    this.position = position;
     this.char = char;
+    this.fillStyle = fillStyle;
   }
 
-  public move(
-    dx: number,
-    dy: number,
-    game: { isWithinBounds: (x: number, y: number) => boolean }
-  ) {
-    const newX = this.x + dx;
-    const newY = this.y + dy;
+  public move(newX: number, newY: number) {
+    this.position.x = newX;
+    this.position.y = newY;
+  }
 
-    // Boundary checks using Game's method
-    if (game.isWithinBounds(newX, newY)) {
-      this.x = newX;
-      this.y = newY;
-    }
+  render(context: CanvasRenderingContext2D): void {
+    context.fillStyle = this.fillStyle;
+    context.font = `${ENTITY_TILE_SIZE}px monospace`;
+    context.textBaseline = "top";
+    context.fillText(
+      this.char,
+      this.position.x * ENTITY_TILE_SIZE + ENTITY_TILE_SIZE / 6,
+      this.position.y * ENTITY_TILE_SIZE
+    );
   }
 }

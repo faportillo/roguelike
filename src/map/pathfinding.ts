@@ -1,5 +1,5 @@
 import { Point } from "./point";
-import { MAP_WALL } from "./constants/map-constants";
+import { MAP_WALL, MAP_FLOOR } from "./constants/map-constants";
 
 interface Node {
   point: Point;
@@ -78,7 +78,7 @@ export class Pathfinding {
         { x: currentNode.point.x + 1, y: currentNode.point.y },
       ];
       for (const neighbor of neighbors) {
-        const neighborPoint: Point = { x: neighbor.x, y: neighbor.y };
+        const neighborPoint: Point = <Point>{ x: neighbor.x, y: neighbor.y };
         if (!this.isWalkable(neighborPoint)) continue;
 
         // Check if the neighbor is already in the closed list
@@ -116,5 +116,26 @@ export class Pathfinding {
       }
     }
     return [];
+  }
+
+  createDirectPath(start: Point, end: Point): Point[] {
+    const path: Point[] = [];
+    const xStep = start.x < end.x ? 1 : -1;
+    const yStep = start.y < end.y ? 1 : -1;
+    let x = start.x;
+    let y = start.y;
+
+    while (x !== end.x) {
+      path.push(<Point>{ x, y });
+      x += xStep;
+    }
+
+    while (y !== end.y) {
+      path.push(<Point>{ x, y });
+      y += yStep;
+    }
+
+    path.push(end);
+    return path;
   }
 }
